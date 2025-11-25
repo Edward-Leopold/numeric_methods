@@ -111,5 +111,13 @@ class Matrix:
 
         return Matrix(inverse_data)
 
+    @staticmethod
+    def calculate_norm(matrix: List[List[int | float]]) -> int | float:
+        """
+        Расчет нормы матрицы для итерационных алгоритмов.
+        :return: Норма.
+        """
+        return max(map(lambda row: sum(map(abs, row)), matrix))
+
     def __str__(self) -> str:
         return '\n'.join([' '.join(map(str, row)) for row in self.matrix])
