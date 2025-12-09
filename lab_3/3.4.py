@@ -2,9 +2,6 @@ from typing import List, Tuple
 
 
 def find_interval(X: List[float], Y: List[float], x_point: float) -> Tuple[List[float], List[float]]:
-    """
-    Находит интервал для вычисления производных
-    """
     if x_point < X[0] or x_point > X[-1]:
         raise ValueError('Точка вне диапазона данных')
 
@@ -16,9 +13,6 @@ def find_interval(X: List[float], Y: List[float], x_point: float) -> Tuple[List[
 
 
 def calculate_first_derivative(X: List[float], Y: List[float], x_point: float) -> float:
-    """
-    Вычисляет первую производную
-    """
     x1, x2, x3 = X
     y1, y2, y3 = Y
 
@@ -29,9 +23,6 @@ def calculate_first_derivative(X: List[float], Y: List[float], x_point: float) -
 
 
 def calculate_second_derivative(X: List[float], Y: List[float]) -> float:
-    """
-    Вычисляет вторую производную
-    """
     x1, x2, x3 = X
     y1, y2, y3 = Y
 
@@ -42,19 +33,16 @@ def calculate_second_derivative(X: List[float], Y: List[float]) -> float:
 
 
 def main():
-    # Данные 14 варианта
     X = [1.0, 2.0, 3.0, 4.0, 5.0]
     Y = [1.0, 2.6931, 4.0986, 5.3863, 6.6094]
     x_star = 3.0
 
-    # Находим интервал и вычисляем производные
     X_interval, Y_interval = find_interval(X, Y, x_star)
 
     first_deriv = calculate_first_derivative(X_interval, Y_interval, x_star)
     second_deriv = calculate_second_derivative(X_interval, Y_interval)
 
     print(f"Точка X* = {x_star}")
-    print(f"Используемый интервал: X = {X_interval}, Y = {Y_interval}")
     print(f"Первая производная: {first_deriv:.6f}")
     print(f"Вторая производная: {second_deriv:.6f}")
 

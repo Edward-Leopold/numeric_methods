@@ -3,12 +3,9 @@ from math import sqrt
 
 
 def f(x: float) -> float:
-    """Подынтегральная функция"""
-    return sqrt(x) / (4 + 3 * x)
-
+    return x / (3*x + 4) ** 2
 
 def rectangles_method(func: Callable, a: float, b: float, h: float) -> float:
-    """Метод средних прямоугольников"""
     total = 0.0
     x = a + h / 2
     while x < b:
@@ -18,7 +15,6 @@ def rectangles_method(func: Callable, a: float, b: float, h: float) -> float:
 
 
 def trapezoids_method(func: Callable, a: float, b: float, h: float) -> float:
-    """Метод трапеций"""
     total = (func(a) + func(b)) / 2
     x = a + h
     while x < b:
@@ -28,7 +24,6 @@ def trapezoids_method(func: Callable, a: float, b: float, h: float) -> float:
 
 
 def simpson_method(func: Callable, a: float, b: float, h: float) -> float:
-    """Метод Симпсона"""
     n = int((b - a) / h)
     if n % 2 != 0:
         n -= 1
@@ -45,40 +40,45 @@ def simpson_method(func: Callable, a: float, b: float, h: float) -> float:
 
 
 def runge_romberg_refinement(I_h: float, I_h2: float, p: int) -> float:
-    """Уточнение по Рунге-Ромбергу"""
     return I_h2 + (I_h2 - I_h) / (2 ** p - 1)
 
 
 def main():
-    a = 0
-    b = 2
+    a = -1
+    b = 1
     h1 = 0.5
     h2 = 0.25
 
-    print("Вычисление интеграла ∫(√x/(4+3x))dx от 0 до 2")
+    # Точное значение интеграла (вычислено аналитически)
+    exact_value = -0.16474
+
     print(f"Шаги: h1 = {h1}, h2 = {h2}")
-    print("=" * 70)
+    print(f"Точное значение: {exact_value:.6f}")
+    print()
 
     # Метод прямоугольников
     I1_rect = rectangles_method(f, a, b, h1)
     I2_rect = rectangles_method(f, a, b, h2)
     refined_rect = runge_romberg_refinement(I1_rect, I2_rect, 2)
+    error_rect = abs(refined_rect - exact_value)
 
     # Метод трапеций
     I1_trap = trapezoids_method(f, a, b, h1)
     I2_trap = trapezoids_method(f, a, b, h2)
     refined_trap = runge_romberg_refinement(I1_trap, I2_trap, 2)
+    error_trap = abs(refined_trap - exact_value)
 
     # Метод Симпсона
     I1_simp = simpson_method(f, a, b, h1)
     I2_simp = simpson_method(f, a, b, h2)
     refined_simp = runge_romberg_refinement(I1_simp, I2_simp, 4)
+    error_simp = abs(refined_simp - exact_value)
 
-    print(f"{'Метод':<20} | h={h1} | h={h2} | Уточненное")
-    print("-" * 70)
-    print(f"{'Прямоугольники':<20} | {I1_rect:.6f} | {I2_rect:.6f} | {refined_rect:.6f}")
-    print(f"{'Трапеции':<20} | {I1_trap:.6f} | {I2_trap:.6f} | {refined_trap:.6f}")
-    print(f"{'Симпсон':<20} | {I1_simp:.6f} | {I2_simp:.6f} | {refined_simp:.6f}")
+    print(f"{'Метод':<20} | {'h='+str(h1):<10} | {'h='+str(h2):<10} | {'Уточненное':<10} | {'Погрешность':<12}")
+    print("-" * 75)
+    print(f"{'Прямоугольники':<20} | {I1_rect:>10.6f} | {I2_rect:>10.6f} | {refined_rect:>10.6f} | {error_rect:>12.2e}")
+    print(f"{'Трапеции':<20} | {I1_trap:>10.6f} | {I2_trap:>10.6f} | {refined_trap:>10.6f} | {error_trap:>12.2e}")
+    print(f"{'Симпсон':<20} | {I1_simp:>10.6f} | {I2_simp:>10.6f} | {refined_simp:>10.6f} | {error_simp:>12.2e}")
 
 
 if __name__ == '__main__':
