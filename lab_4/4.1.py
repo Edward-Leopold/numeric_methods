@@ -60,6 +60,61 @@ def euler_method(space: Tuple[int | float, int | float], h: float | int,
 
     return x_values, y_values
 
+def euler_cauchy_method(space: Tuple[int | float, int | float], h: float | int,
+                        initial_condition: Tuple[int | float, int | float, int | float, int | float],
+                        func: Callable[[int | float, int | float, int | float], int | float]) \
+        -> Tuple[List[int | float], List[int | float]]:
+    """Метод Эйлера-Коши."""
+    x0, y0, _, z0 = initial_condition
+    a, b = space
+    x_values = [x0]
+    y_values = [y0]
+    n_steps = int(round((b - a) / h))
+    x_current = x0
+    y_current = y0
+    z_current = z0
+    for _ in range(n_steps):
+        if x_current + h > b + 1e-9:
+            break
+        y_tilde = y_current + h * z_current
+        z_tilde = z_current + h * func(x_current, y_current, z_current)
+        y_next = y_current + h * 0.5 * (z_current + z_tilde)
+        z_next = z_current + h * 0.5 * (
+            func(x_current, y_current, z_current) +
+            func(x_current + h, y_tilde, z_tilde)
+        )
+        x_next = x_current + h
+        x_values.append(x_next)
+        y_values.append(y_next)
+        x_current, y_current, z_current = x_next, y_next, z_next
+    return x_values, y_values
+
+def improved_euler_method(space: Tuple[int | float, int | float], h: float | int,
+                          initial_condition: Tuple[int | float, int | float, int | float, int | float],
+                          func: Callable[[int | float, int | float, int | float], int | float]) \
+        -> Tuple[List[int | float], List[int | float]]:
+    """Улучшенный метод Эйлера."""
+    x0, y0, _, z0 = initial_condition
+    a, b = space
+    x_values = [x0]
+    y_values = [y0]
+    n_steps = int(round((b - a) / h))
+    x_current = x0
+    y_current = y0
+    z_current = z0
+    for _ in range(n_steps):
+        if x_current + h > b + 1e-9:
+            break
+        y_half = y_current + (h / 2) * z_current
+        z_half = z_current + (h / 2) * func(x_current, y_current, z_current)
+        x_half = x_current + h / 2
+        y_next = y_current + h * z_half
+        z_next = z_current + h * func(x_half, y_half, z_half)
+        x_next = x_current + h
+        x_values.append(x_next)
+        y_values.append(y_next)
+        x_current, y_current, z_current = x_next, y_next, z_next
+    return x_values, y_values
 
 def runge_kutta_method(space: Tuple[int | float, int | float], h: float | int,
                        initial_condition: Tuple[int | float, int | float, int | float, int | float],
@@ -239,6 +294,19 @@ def main():
     solutions = (X_h, Y_h, X_2h, Y_2h)
     errors = runge_romberg_error_estimation(space, h, solutions, p=1)
     print_results(X_h, Y_h, errors, "Метод Эйлера")
+
+    # Метод Эйлера-Коши
+    X_h, Y_h = euler_cauchy_method(space, h, initial_condition, f)
+    X_2h, Y_2h = euler_cauchy_method(space, 2 * h, initial_condition, f)
+    solutions = (X_h, Y_h, X_2h, Y_2h)
+    errors = runge_romberg_error_estimation(space, h, solutions, 2)
+    print_results(X_h, Y_h, errors, "Метод Эйлера-Коши")
+    # Улучшенный метод Эйлера
+    X_h, Y_h = improved_euler_method(space, h, initial_condition, f)
+    X_2h, Y_2h = improved_euler_method(space, 2 * h, initial_condition, f)
+    solutions = (X_h, Y_h, X_2h, Y_2h)
+    errors = runge_romberg_error_estimation(space, h, solutions, 2)
+    print_results(X_h, Y_h, errors, "Улучшенный метод Эйлера")
 
     # --- 2. Метод Рунге-Кутты (4 порядка) ---
     X_h, Y_h, _ = runge_kutta_method(space, h, initial_condition, f, 4)
