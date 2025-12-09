@@ -1,5 +1,7 @@
 import math
 from typing import Tuple, List, Callable
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 def exact_solution(x: int | float) -> int | float:
@@ -171,7 +173,7 @@ def runge_kutta_method(space: Tuple[int | float, int | float], h: float | int,
     return x_values, y_values, z_values
 
 
-def adams_bashforth_moulton_method(space: Tuple[int | float, int | float], h: float | int,
+def adams_method(space: Tuple[int | float, int | float], h: float | int,
                                    initial_condition: Tuple[int | float, int | float, int | float, int | float],
                                    func: Callable[[int | float, int | float, int | float], int | float]) \
         -> Tuple[List[int | float], List[int | float]]:
@@ -198,15 +200,7 @@ def adams_bashforth_moulton_method(space: Tuple[int | float, int | float], h: fl
 
         # Предиктор (Адамс-Бэшфорт)
         y_new = Y[k] + h / 24 * (55 * Z[k] - 59 * Z[k - 1] + 37 * Z[k - 2] - 9 * Z[k - 3])
-        z_new_pred = Z[k] + h / 24 * (55 * F[k] - 59 * F[k - 1] + 37 * F[k - 2] - 9 * F[k - 3])
-
-        f_new_pred = func(x_new, y_new, z_new_pred)
-
-        # Корректор (Адамс-Моултон) для Z
-        z_new = Z[k] + h / 24 * (9 * f_new_pred + 19 * F[k] - 5 * F[k - 1] + F[k - 2])
-
-        # Пересчитываем y (необязательно, но уточняет результат)
-        # В данной реализации y берется из предиктора, что допустимо, но z уточняется.
+        z_new = Z[k] + h / 24 * (55 * F[k] - 59 * F[k - 1] + 37 * F[k - 2] - 9 * F[k - 3])
 
         X.append(x_new)
         Y.append(y_new)
@@ -248,11 +242,11 @@ def print_results(X: List[int | float], Y: List[int | float],
     """Вывод таблиц результатов."""
     runge_dict = {x: (y_h, R_h) for x, y_h, R_h in runge_estimates}
 
-    print(f"\n{method_name:^100}")
-    print("=" * 120)
+    print(f"\n{method_name:^80}")
+    print("=" * 80)
     print(f"{'x':<8} {'y_approx':<12} {'y_exact':<12} {'Abs Error':<15} "
           f"{'Rel Error':<15} {'R_h':<15}")
-    print("-" * 120)
+    print("=" * 80)
 
     for i, (x, y_approx) in enumerate(zip(X, Y)):
         y_exact = exact_solution(x)
@@ -277,23 +271,19 @@ def print_results(X: List[int | float], Y: List[int | float],
 
 
 def main():
-    # Начальные условия из задания:
-    # y(1) = 1, y'(1) = 1
-    # Формат кортежа: (x0, y0, dummy, z0) -> z0 это y'
     initial_condition = (1, 1, 0, 1)
-
-    # Отрезок [1, 2]
     space = (1, 2)
-
-    # Шаг
     h = 0.1
 
-    # --- 1. Метод Эйлера ---
+    results = {}
+
+    # Метод Эйлера
     X_h, Y_h = euler_method(space, h, initial_condition, f)
     X_2h, Y_2h = euler_method(space, 2 * h, initial_condition, f)
     solutions = (X_h, Y_h, X_2h, Y_2h)
     errors = runge_romberg_error_estimation(space, h, solutions, p=1)
     print_results(X_h, Y_h, errors, "Метод Эйлера")
+    results['Euler'] = (X_h, Y_h)
 
     # Метод Эйлера-Коши
     X_h, Y_h = euler_cauchy_method(space, h, initial_condition, f)
@@ -301,27 +291,48 @@ def main():
     solutions = (X_h, Y_h, X_2h, Y_2h)
     errors = runge_romberg_error_estimation(space, h, solutions, 2)
     print_results(X_h, Y_h, errors, "Метод Эйлера-Коши")
+    results['Euler-Cauchy'] = (X_h, Y_h)
+
     # Улучшенный метод Эйлера
     X_h, Y_h = improved_euler_method(space, h, initial_condition, f)
     X_2h, Y_2h = improved_euler_method(space, 2 * h, initial_condition, f)
     solutions = (X_h, Y_h, X_2h, Y_2h)
     errors = runge_romberg_error_estimation(space, h, solutions, 2)
     print_results(X_h, Y_h, errors, "Улучшенный метод Эйлера")
+    results['Improved Euler'] = (X_h, Y_h)
 
-    # --- 2. Метод Рунге-Кутты (4 порядка) ---
+    # Метод Рунге-Кутты (4 порядка)
     X_h, Y_h, _ = runge_kutta_method(space, h, initial_condition, f, 4)
     X_2h, Y_2h, _ = runge_kutta_method(space, 2 * h, initial_condition, f, 4)
     solutions = (X_h, Y_h, X_2h, Y_2h)
     errors = runge_romberg_error_estimation(space, h, solutions, p=4)
     print_results(X_h, Y_h, errors, "Метод Рунге-Кутты 4 порядка")
+    results['Runge-Kutta 4'] = (X_h, Y_h)
 
-    # --- 3. Метод Адамса (4 порядка) ---
-    X_h, Y_h = adams_bashforth_moulton_method(space, h, initial_condition, f)
-    X_2h, Y_2h = adams_bashforth_moulton_method(space, 2 * h, initial_condition, f)
+    # Метод Адамса (4 порядка)
+    X_h, Y_h = adams_method(space, h, initial_condition, f)
+    X_2h, Y_2h = adams_method(space, 2 * h, initial_condition, f)
     solutions = (X_h, Y_h, X_2h, Y_2h)
     errors = runge_romberg_error_estimation(space, h, solutions, p=4)
     print_results(X_h, Y_h, errors, "Метод Адамса 4-го порядка")
+    results['Adams 4'] = (X_h, Y_h)
 
+    # Plotting solutions
+    X_fine = np.linspace(1, 2, 100)
+    Y_exact = [exact_solution(x) for x in X_fine]
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(X_fine, Y_exact, label='Exact Solution', linewidth=2)
+
+    for method, (X, Y) in results.items():
+        plt.plot(X, Y, label=method, marker='o')
+
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.title('Comparison of Numerical Methods with Exact Solution')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
 
 if __name__ == '__main__':
     main()
