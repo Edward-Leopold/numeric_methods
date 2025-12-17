@@ -105,7 +105,6 @@ def finite_difference_method(space: Tuple[float, float], h: float) -> Tuple[List
     N = int(round((b - a) / h))
     X = [a + i * h for i in range(N + 1)]
 
-    # A[i]*y[i-1] + B[i]*y[i] + C[i]*y[i+1] = D[i]
     Alpha = [0.0] * (N + 1)  # A
     Beta = [0.0] * (N + 1)  # B
     Gamma = [0.0] * (N + 1)  # C
@@ -158,7 +157,6 @@ def finite_difference_method(space: Tuple[float, float], h: float) -> Tuple[List
             P_coeff[i] = -Gamma[i] / denom
         Q_coeff[i] = (Phi[i] - Alpha[i] * Q_coeff[i - 1]) / denom
 
-    # Обратный ход
     Y = [0.0] * (N + 1)
     Y[N] = Q_coeff[N]
 
@@ -221,7 +219,6 @@ def main():
     print("Решение краевой задачи: (e^x + 1)y'' - 2y' - e^x y = 0")
     print(f"Отрезок: {space}, Шаг: {h}")
 
-    # --- Метод Стрельбы ---
     X_shoot_h, Y_shoot_h = shooting_method(space, h)
     X_shoot_2h, Y_shoot_2h = shooting_method(space, 2 * h)
 

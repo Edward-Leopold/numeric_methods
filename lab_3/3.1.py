@@ -1,5 +1,7 @@
 import math
 from typing import List, Callable
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 def f(x: float) -> float:
@@ -33,7 +35,8 @@ def divided_diff(func: Callable[[float], float], X_values: List[float]) -> float
     return (divided_diff(func, X_values[1:]) - divided_diff(func, X_values[:-1])) / (X_values[-1] - X_values[0])
 
 
-def newton_polynom(x: float, func: Callable[[float], float], diff_func: Callable[[Callable[[float], float], List[float]], float], X_values: List[float]) -> float:
+def newton_polynom(x: float, func: Callable[[float], float],
+                   diff_func: Callable[[Callable[[float], float], List[float]], float], X_values: List[float]) -> float:
     n = len(X_values)
     res = 0.0
 
@@ -48,6 +51,36 @@ def newton_polynom(x: float, func: Callable[[float], float], diff_func: Callable
 
 def fault(x: float, func: Callable[[float], float], possible_value: float) -> float:
     return abs(func(x) - possible_value)
+
+
+def plot_interpolation(X_values: List[float], Y_values: List[float],
+                       lagrange_func: Callable[[float], float],
+                       newton_func: Callable[[float], float],
+                       case_label: str, X_star: float):
+    x_plot = np.linspace(min(X_values) - 0.1, max(X_values) + 0.1, 400)
+    y_lagrange = [lagrange_func(xi, X_values, Y_values) for xi in x_plot]
+    y_newton = [newton_func(xi, f, divided_diff, X_values) for xi in x_plot]
+    y_exact = [f(xi) for xi in x_plot]
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(x_plot, y_exact, 'k-', label='f(x) = tg(x) + x', linewidth=2, alpha=0.7)
+    plt.plot(x_plot, y_lagrange, 'b--', label='Полином Лагранжа', linewidth=1.5)
+    plt.plot(x_plot, y_newton, 'r:', label='Полином Ньютона', linewidth=1.5)
+    plt.scatter(X_values, Y_values, color='green', s=100, zorder=5, label='Узлы интерполяции')
+    plt.scatter([X_star], [f(X_star)], color='magenta', s=150, zorder=6, label=f'X* = {X_star:.4f}', marker='*')
+
+    lagrange_star = lagrange_func(X_star, X_values, Y_values)
+    newton_star = newton_func(X_star, f, divided_diff, X_values)
+    plt.scatter([X_star], [lagrange_star], color='blue', s=80, zorder=5, marker='s')
+    plt.scatter([X_star], [newton_star], color='red', s=80, zorder=5, marker='d')
+
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.title(f'Интерполяция функции (случай {case_label})')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.show()
 
 
 def main():
@@ -78,6 +111,8 @@ def main():
     print(f"Метод Ньютона:  {newton_val_a:.8f}")
     print(f"Погрешность Ньютона:  {fault(X_star, f, newton_val_a):.2e}")
 
+    plot_interpolation(X_a, Y_a, lagrange_polynom, newton_polynom, "а", X_star)
+
     print("\n" + "=" * 60)
     print("б)")
     print("0, π/8, π/3, 3π/8")
@@ -96,7 +131,7 @@ def main():
     print(f"Метод Ньютона:  {newton_val_b:.8f}")
     print(f"Погрешность Ньютона:  {fault(X_star, f, newton_val_b):.2e}")
 
-
+    plot_interpolation(X_b, Y_b, lagrange_polynom, newton_polynom, "б", X_star)
 
 
 if __name__ == '__main__':

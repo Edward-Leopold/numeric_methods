@@ -1,4 +1,3 @@
-# алгоритм LU -  разложения матриц с выбором главного элемента (LUP-разложение)
 from typing import List
 from common.matrix import Matrix
 
